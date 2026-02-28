@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Kiểm Tra Nỗi Sợ AI</title>
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg,#6dd5fa,#ffffff);
+    text-align:center;
+    padding:40px;
+}
+.container{
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    max-width:650px;
+    margin:auto;
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+button{
+    padding:10px 20px;
+    margin:10px;
+    border:none;
+    border-radius:8px;
+    background:#4CAF50;
+    color:white;
+    cursor:pointer;
+    transition:0.3s;
+}
+button:hover{
+    background:#45a049;
+    transform:scale(1.05);
+}
+.fade{
+    animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+}
+</style>
+</head>
+<body>
+
+<div class="container fade">
+    <button id="musicToggle">🎵 Bật nhạc</button>
+    <h2>Trắc nghiệm mức độ lo lắng về AI</h2>
+    <p id="question"></p>
+    <div id="answers"></div>
+</div>
+
+<script>
+
+const questions = [
+"Bạn có lo AI sẽ thay thế công việc của mình không?",
+"Bạn có cảm thấy phải học nhanh hơn vì AI?",
+"Bạn có sợ mình trở nên lỗi thời?",
+"Bạn có áp lực khi nghe tin AI mới?",
+"Bạn có so sánh bản thân với AI?",
+"Bạn có thấy AI vượt ngoài kiểm soát?",
+"Bạn có lo tương lai phụ thuộc vào AI?",
+"Bạn có mất tự tin khi AI làm nhanh hơn?",
+"Bạn có lo không bắt kịp công nghệ?",
+"Bạn có bất an về vai trò con người?"
+];
+
+const levels = [
+{ text:"Bình thường", score:1 },
+{ text:"Lo lắng nhẹ", score:2 },
+{ text:"Lo âu vừa", score:3 },
+{ text:"Lo âu cao", score:4 }
+];
+
+let current = 0;
+let totalScore = 0;
+
+function showQuestion(){
+    document.getElementById("question").innerText = questions[current];
+    const answerDiv = document.getElementById("answers");
+    answerDiv.innerHTML="";
+    levels.forEach(level=>{
+        const btn = document.createElement("button");
+        btn.innerText = level.text;
+        btn.onclick = ()=> nextQuestion(level.score);
+        answerDiv.appendChild(btn);
+    });
+}
+
+function nextQuestion(score){
+    if(!musicOn) startMusic();
+    totalScore+=score;
+    current++;
+    if(current<questions.length){
+        showQuestion();
+    } else {
+        finishTest();
+    }
+}
+
+function finishTest(){
+    let level="";
+    if(totalScore<=15) level="Thấp";
+    else if(totalScore<=25) level="Trung bình";
+    else if(totalScore<=35) level="Cao";
+    else level="Rất cao";
+
+    window.location.href="rescue.html?level="+level;
+}
+
+showQuestion();
+
+/* ===== PIANO MUSIC ===== */
+
+let audioContext;
+let musicInterval;
+let musicOn=false;
+
+const musicBtn=document.getElementById("musicToggle");
+
+function playNote(freq,duration){
+    const osc=audioContext.createOscillator();
+    const gain=audioContext.createGain();
+
+    osc.type="sine";
+    osc.frequency.value=freq;
+
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+
+    gain.gain.setValueAtTime(0,audioContext.currentTime);
+    gain.gain.linearRampToValueAtTime(0.25,audioContext.currentTime+0.05);
+    gain.gain.linearRampToValueAtTime(0,audioContext.currentTime+duration);
+
+    osc.start();
+    osc.stop(audioContext.currentTime+duration);
+}
+
+function startMusic(){
+    if(!audioContext){
+        audioContext=new (window.AudioContext||window.webkitAudioContext)();
+    }
+
+    const melody=[261.63,329.63,392.00,329.63,293.66,261.63];
+    let index=0;
+
+    musicInterval=setInterval(()=>{
+        playNote(melody[index],0.8);
+        index=(index+1)%melody.length;
+    },900);
+
+    musicOn=true;
+    musicBtn.innerText="🔇 Tắt nhạc";
+}
+
+function stopMusic(){
+    clearInterval(musicInterval);
+    musicOn=false;
+    musicBtn.innerText="🎵 Bật nhạc";
+}
+
+musicBtn.onclick=function(){
+    if(!musicOn) startMusic();
+    else stopMusic();
+};
+
+</script>
+</body>
+</html>

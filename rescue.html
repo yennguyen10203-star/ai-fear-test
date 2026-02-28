@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Giải Cứu Lo Lắng AI</title>
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg,#ffecd2,#fcb69f);
+    text-align:center;
+    padding:40px;
+}
+.container{
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    max-width:700px;
+    margin:auto;
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+button{
+    padding:10px 20px;
+    margin-top:20px;
+    border:none;
+    border-radius:8px;
+    background:#2196F3;
+    color:white;
+    cursor:pointer;
+}
+button:hover{
+    background:#1e88e5;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <button id="musicToggle">🎵 Bật nhạc</button>
+    <h2>Trung Tâm Giải Cứu Lo Lắng AI</h2>
+    <p id="resultLevel"></p>
+    <div id="advice"></div>
+    <button onclick="goBack()">Làm lại bài kiểm tra</button>
+</div>
+
+<script>
+
+function getLevel(){
+    const params=new URLSearchParams(window.location.search);
+    return params.get("level");
+}
+
+function showAdvice(){
+    const level=getLevel();
+    document.getElementById("resultLevel").innerHTML="<b>Mức độ của bạn:</b> "+level;
+
+    let advice="";
+    if(level==="Thấp")
+        advice="Bạn đang cân bằng tốt. Hãy tiếp tục cập nhật AI như một công cụ hỗ trợ.";
+    else if(level==="Trung bình")
+        advice="Học cách hợp tác với AI thay vì cạnh tranh.";
+    else if(level==="Cao")
+        advice="Tập trung phát triển sáng tạo, giao tiếp và tư duy phản biện.";
+    else
+        advice="Giảm tiếp xúc tin tiêu cực, tập thở sâu và nhìn AI như sản phẩm do con người tạo ra.";
+
+    document.getElementById("advice").innerText=advice;
+}
+
+function goBack(){
+    window.location.href="index.html";
+}
+
+showAdvice();
+
+/* ===== PIANO MUSIC ===== */
+
+let audioContext;
+let musicInterval;
+let musicOn=false;
+const musicBtn=document.getElementById("musicToggle");
+
+function playNote(freq,duration){
+    const osc=audioContext.createOscillator();
+    const gain=audioContext.createGain();
+    osc.type="sine";
+    osc.frequency.value=freq;
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    gain.gain.setValueAtTime(0,audioContext.currentTime);
+    gain.gain.linearRampToValueAtTime(0.25,audioContext.currentTime+0.05);
+    gain.gain.linearRampToValueAtTime(0,audioContext.currentTime+duration);
+    osc.start();
+    osc.stop(audioContext.currentTime+duration);
+}
+
+function startMusic(){
+    if(!audioContext){
+        audioContext=new (window.AudioContext||window.webkitAudioContext)();
+    }
+    const melody=[261.63,329.63,392.00,329.63,293.66,261.63];
+    let index=0;
+    musicInterval=setInterval(()=>{
+        playNote(melody[index],0.8);
+        index=(index+1)%melody.length;
+    },900);
+    musicOn=true;
+    musicBtn.innerText="🔇 Tắt nhạc";
+}
+
+function stopMusic(){
+    clearInterval(musicInterval);
+    musicOn=false;
+    musicBtn.innerText="🎵 Bật nhạc";
+}
+
+musicBtn.onclick=function(){
+    if(!musicOn) startMusic();
+    else stopMusic();
+};
+
+</script>
+</body>
+</html>
